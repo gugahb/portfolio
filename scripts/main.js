@@ -1,43 +1,51 @@
-// Add your javascript here
-// Don't forget to add it into respective layouts where this js file is needed
+// Gustavo Borges — main.js v2.0
+// Vanilla JS only — no jQuery
 
-$(document).ready(function() {
-  AOS.init( {
-    // uncomment below for on-scroll animations to played only once
-    // once: true  
-  }); // initialize animate on scroll library
-});
+document.addEventListener('DOMContentLoaded', function () {
 
-// Smooth scroll for links with hashes
-$('a.smooth-scroll')
-.click(function(event) {
-  // On-page links
-  if (
-    location.pathname.replace(/^\//, '') == this.pathname.replace(/^\//, '') 
-    && 
-    location.hostname == this.hostname
-  ) {
-    // Figure out element to scroll to
-    var target = $(this.hash);
-    target = target.length ? target : $('[name=' + this.hash.slice(1) + ']');
-    // Does a scroll target exist?
-    if (target.length) {
-      // Only prevent default if animation is actually gonna happen
-      event.preventDefault();
-      $('html, body').animate({
-        scrollTop: target.offset().top
-      }, 1000, function() {
-        // Callback after animation
-        // Must change focus!
-        var $target = $(target);
-        $target.focus();
-        if ($target.is(":focus")) { // Checking if the target was focused
-          return false;
-        } else {
-          $target.attr('tabindex','-1'); // Adding tabindex for elements not focusable
-          $target.focus(); // Set focus again
-        };
-      });
+  // ---- AOS Init ----
+  AOS.init({
+    duration: 650,
+    easing: 'ease-out-cubic',
+    once: true,
+    offset: 40,
+  });
+
+  // ---- Navbar scroll behavior (transparent → dark) ----
+  var nav = document.getElementById('mainNav');
+  if (nav) {
+    function onNavScroll() {
+      if (window.scrollY > 60) {
+        nav.classList.add('scrolled');
+      } else {
+        nav.classList.remove('scrolled');
+      }
     }
+    window.addEventListener('scroll', onNavScroll, { passive: true });
+    onNavScroll();
   }
+
+  // ---- Smooth scroll for all same-page anchor links ----
+  document.querySelectorAll('a[href^="#"]').forEach(function (anchor) {
+    anchor.addEventListener('click', function (e) {
+      var targetId = this.getAttribute('href');
+      if (!targetId || targetId === '#') return;
+      var target = document.querySelector(targetId);
+      if (!target) return;
+
+      e.preventDefault();
+
+      var navHeight = nav ? nav.offsetHeight : 0;
+      var targetTop = target.getBoundingClientRect().top + window.scrollY - navHeight - 20;
+      window.scrollTo({ top: targetTop, behavior: 'smooth' });
+
+      // Collapse Bootstrap 5 mobile menu if open
+      var navMenu = document.getElementById('navMenu');
+      if (navMenu && navMenu.classList.contains('show')) {
+        var bsCollapse = bootstrap.Collapse.getInstance(navMenu);
+        if (bsCollapse) bsCollapse.hide();
+      }
+    });
+  });
+
 });
